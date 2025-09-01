@@ -18,6 +18,12 @@ RUN apt-get update \
         g++ \
     && rm -rf /var/lib/apt/lists/*
 
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
