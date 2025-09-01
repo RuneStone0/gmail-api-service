@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
-from email_service import EmailService
-from config import SENDER_EMAIL, RECEIVER_EMAIL, APP_PASSWORD
+from .email_service import EmailService
+from .config import SENDER_EMAIL, RECEIVER_EMAIL, APP_PASSWORD
 import os
 
 app = Flask(__name__)
@@ -93,11 +93,5 @@ def send_test_html_email():
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-if __name__ == '__main__':
-    # Get port from environment variable or use default
-    port = int(os.environ.get('PORT', 5000))
-    
-    # Run in debug mode if FLASK_ENV is set to development
-    debug = os.environ.get('FLASK_ENV') == 'development'
-    
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+# Flask app is now run via run.py entry point
+# Use: python run.py 
