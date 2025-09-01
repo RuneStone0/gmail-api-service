@@ -34,9 +34,43 @@ python app/main.py
 
 ## Docker Deployment
 
-### Using Docker Compose (Recommended)
+### Using GitHub Container Registry (Recommended)
+
+The Docker image is automatically built and pushed to GitHub Container Registry on every push to main branch and release tags.
+
 ```bash
-# Build and run with Docker Compose
+# Pull the latest image
+docker pull ghcr.io/yourusername/gmail-api-service:main
+
+# Pull a specific version
+docker pull ghcr.io/yourusername/gmail-api-service:v1.0.0
+
+# Run the container
+docker run -p 5000:5000 --env-file .env ghcr.io/yourusername/gmail-api-service:main
+```
+
+### Using Docker Compose with GitHub Container Registry
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  gmail-api-service:
+    image: ghcr.io/yourusername/gmail-api-service:main
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    restart: unless-stopped
+```
+
+```bash
+# Run with Docker Compose
+docker-compose up -d
+```
+
+### Local Development with Docker Compose
+```bash
+# Build and run locally
 docker-compose up --build
 
 # Run in background
@@ -46,9 +80,9 @@ docker-compose up -d
 docker-compose down
 ```
 
-### Using Docker directly
+### Using Docker directly (local build)
 ```bash
-# Build the image
+# Build the image locally
 docker build -t gmail-api-service .
 
 # Run the container
@@ -61,6 +95,10 @@ docker run -p 5000:5000 \
   -e APP_PASSWORD=your_app_password \
   gmail-api-service
 ```
+
+## Security Note
+
+Never commit your actual `.env` file to version control.
 
 ## Usage
 
@@ -76,6 +114,20 @@ email_service.send_test_email()
 
 # Send custom email to specific recipient
 email_service.send_email("Custom Subject", "Custom message body", "recipient@example.com")
+
+# Send HTML email
+html_content = """
+<html>
+<body>
+    <h1>Hello!</h1>
+    <p>This is an <strong>HTML email</strong> with formatting.</p>
+</body>
+</html>
+"""
+email_service.send_html_email("HTML Email", html_content, "recipient@example.com")
+
+# Send email with HTML flag
+email_service.send_email("HTML Email", html_content, "recipient@example.com", is_html=True)
 ```
 
 ## API Endpoints
@@ -103,7 +155,8 @@ Content-Type: application/json
 {
     "subject": "Email Subject",
     "body": "Email content",
-    "receiver_email": "recipient@example.com"  # optional
+    "receiver_email": "recipient@example.com",  # optional
+    "is_html": false  # optional, if true, body is treated as HTML content
 }
 ```
 
@@ -112,6 +165,12 @@ Content-Type: application/json
 POST /send-test-email
 ```
 Sends a test email with default subject and body.
+
+#### Send Test HTML Email
+```bash
+POST /send-test-html-email
+```
+Sends a test HTML email with styled content and formatting.
 
 ### Example API Usage
 
@@ -125,8 +184,20 @@ curl -X POST http://localhost:5000/send-email \
     "body": "This email was sent via the Flask API"
   }'
 
+# Send HTML email
+curl -X POST http://localhost:5000/send-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subject": "HTML Email from API",
+    "body": "<h1>Hello!</h1><p>This is an <strong>HTML email</strong>!</p>",
+    "is_html": true
+  }'
+
 # Send test email
 curl -X POST http://localhost:5000/send-test-email
+
+# Send test HTML email
+curl -X POST http://localhost:5000/send-test-html-email
 
 # Check health
 curl http://localhost:5000/health
@@ -140,6 +211,24 @@ import requests
 response = requests.post('http://localhost:5000/send-email', json={
     'subject': 'Hello from Python',
     'body': 'This is a test email'
+})
+
+print(response.json())
+
+# Send HTML email
+html_content = """
+<html>
+<body>
+    <h1 style="color: #2c3e50;">Hello from Python!</h1>
+    <p style="color: #34495e;">This is an <strong>HTML email</strong> with styling.</p>
+</body>
+</html>
+"""
+
+response = requests.post('http://localhost:5000/send-email', json={
+    'subject': 'HTML Email from Python',
+    'body': html_content,
+    'is_html': True
 })
 
 print(response.json())

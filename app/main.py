@@ -11,6 +11,12 @@ def main():
     else:
         print("Failed to send email.")
 
+    # Send test HTML email
+    if email_service.send_test_html_email():
+        print("HTML email sent successfully!")
+    else:
+        print("Failed to send HTML email.")
+
 
 if __name__ == "__main__":
     main()

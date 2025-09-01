@@ -22,7 +22,8 @@ def send_email():
     {
         "subject": "Email subject",
         "body": "Email body content",
-        "receiver_email": "recipient@example.com"  # optional, uses default if not provided
+        "receiver_email": "recipient@example.com",  # optional, uses default if not provided
+        "is_html": false  # optional, if true, body is treated as HTML content
     }
     """
     try:
@@ -39,15 +40,17 @@ def send_email():
         subject = data['subject']
         body = data['body']
         receiver_email = data.get('receiver_email')  # Optional field
+        is_html = data.get('is_html', False)  # Optional field, defaults to False
         
         # Send email
-        success = email_service.send_email(subject, body, receiver_email)
+        success = email_service.send_email(subject, body, receiver_email, is_html)
         
         if success:
             return jsonify({
                 "message": "Email sent successfully",
                 "subject": subject,
-                "receiver": receiver_email or RECEIVER_EMAIL
+                "receiver": receiver_email or RECEIVER_EMAIL,
+                "content_type": "HTML" if is_html else "Plain Text"
             }), 200
         else:
             return jsonify({"error": "Failed to send email"}), 500
