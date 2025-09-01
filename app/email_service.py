@@ -16,6 +16,30 @@ class EmailService:
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 587
 
+    def _parse_receiver_emails(self, receiver_email):
+        """
+        Parse receiver email(s) into a list.
+        If receiver_email is a string, split by comma and strip whitespace.
+        If receiver_email is already a list, return as is.
+        
+        Args:
+            receiver_email: String (comma-separated) or list of email addresses
+            
+        Returns:
+            list: List of email addresses
+        """
+        if receiver_email is None:
+            receiver_email = self.receiver_email
+            
+        if isinstance(receiver_email, str):
+            # Split by comma and strip whitespace from each email
+            return [email.strip() for email in receiver_email.split(',') if email.strip()]
+        elif isinstance(receiver_email, list):
+            return receiver_email
+        else:
+            # Fallback to single email in a list
+            return [str(receiver_email)]
+
     def send_email(self, subject, body, receiver_email=None, is_html=False):
         """
         Send an email with the specified subject and body.
@@ -23,17 +47,21 @@ class EmailService:
         Args:
             subject (str): Email subject
             body (str): Email body content
-            receiver_email (str, optional): Override default receiver email
+            receiver_email (str or list, optional): Override default receiver email(s).
+                                                   Can be comma-separated string or list.
             is_html (bool): If True, body is treated as HTML content
             
         Returns:
             bool: True if email sent successfully, False otherwise
         """
         try:
+            # Parse receiver emails
+            receiver_emails = self._parse_receiver_emails(receiver_email)
+            
             # Create the email
             msg = MIMEMultipart()
             msg["From"] = self.sender_email
-            msg["To"] = receiver_email or self.receiver_email
+            msg["To"] = ", ".join(receiver_emails)  # Join multiple emails with comma
             msg["Subject"] = subject
             
             # Set content type based on is_html parameter
@@ -44,7 +72,9 @@ class EmailService:
             server = smtplib.SMTP(self.smtp_server, self.smtp_port)
             server.starttls()  # Enable TLS
             server.login(self.sender_email, self.app_password)
-            server.sendmail(self.sender_email, receiver_email or self.receiver_email, msg.as_string())
+            
+            # Send to all recipients
+            server.sendmail(self.sender_email, receiver_emails, msg.as_string())
             server.quit()
             
             return True
@@ -60,7 +90,8 @@ class EmailService:
         Args:
             subject (str): Email subject
             html_body (str): HTML email body content
-            receiver_email (str, optional): Override default receiver email
+            receiver_email (str or list, optional): Override default receiver email(s).
+                                                   Can be comma-separated string or list.
             
         Returns:
             bool: True if email sent successfully, False otherwise
