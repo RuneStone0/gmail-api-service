@@ -58,7 +58,7 @@ def send_email():
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-@app.route('/send-test-email', methods=['POST'])
+@app.route('/test/send-email', methods=['POST'])
 def send_test_email():
     """Send test email endpoint"""
     try:
@@ -71,6 +71,24 @@ def send_test_email():
             }), 200
         else:
             return jsonify({"error": "Failed to send test email"}), 500
+            
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+@app.route('/test/send-html-email', methods=['POST'])
+def send_test_html_email():
+    """Send test HTML email endpoint"""
+    try:
+        success = email_service.send_test_html_email()
+        
+        if success:
+            return jsonify({
+                "message": "Test HTML email sent successfully",
+                "receiver": RECEIVER_EMAIL,
+                "content_type": "HTML"
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send test HTML email"}), 500
             
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
